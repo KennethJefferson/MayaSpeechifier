@@ -1,0 +1,21 @@
+# Core dependencies
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+python-multipart==0.0.20
+
+# ML & Model serving
+torch>=2.0.0
+transformers>=4.30.0
+vllm>=0.6.0
+snac @ git+https://github.com/hubertsiuzdak/snac.git
+
+# Audio processing
+soundfile==0.12.1
+pydub==0.25.1
+librosa==0.10.2
+
+# Utilities
+numpy>=1.24.0
+tiktoken==0.8.0
+pydantic>=2.0.0
+python-dotenv==1.0.1
