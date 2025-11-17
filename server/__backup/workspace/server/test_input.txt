@@ -1,0 +1,3 @@
+Welcome to Maya1, an advanced text to speech system.
+This is a test of processing text from a file.
+The system can handle multiple sentences and paragraphs.

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python runpod_info.py:*)",
+      "Bash(python:*)",
+      "Bash(pkill:*)",
+      "Bash(lsof:*)",
+      "Bash(tar:*)",
+      "Bash(xargs:*)",
+      "Bash(curl:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

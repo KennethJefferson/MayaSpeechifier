@@ -1,0 +1,59 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 7777,
+    "workers": 1,
+    "log_level": "INFO"
+  },
+  "cors": {
+    "enabled": true,
+    "allowed_origins": ["*"],
+    "allowed_methods": ["GET", "POST"],
+    "allowed_headers": ["*"],
+    "allow_credentials": false
+  },
+  "model": {
+    "name": "maya-research/maya1",
+    "device": "cuda",
+    "dtype": "bfloat16",
+    "max_model_len": 2048,
+    "trust_remote_code": true
+  },
+  "model_pool": {
+    "num_instances": 2,
+    "gpu_memory_per_instance": 0.4,
+    "tensor_parallel_size": 1
+  },
+  "generation": {
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "repetition_penalty": 1.1,
+    "max_new_tokens": 2048
+  },
+  "audio": {
+    "sample_rate": 24000,
+    "format": "mp3",
+    "bitrate": "192k"
+  },
+  "text_processing": {
+    "chunk_size": 1500,
+    "max_file_size_mb": 10
+  },
+  "voice": {
+    "default_description": "neutral, conversational, clear"
+  },
+  "runpod": {
+    "pod_name": "kennyjnotg",
+    "pod_id": "yakgzeajldnlek",
+    "ssh_host": "ssh.runpod.io",
+    "ssh_user": "yakgzeajldnlek-6441155a",
+    "ssh_tcp_host": "213.173.110.158",
+    "ssh_tcp_port": 36312,
+    "ssh_tcp_user": "root",
+    "direct_tcp_address": "213.173.110.158",
+    "direct_tcp_port": 36312,
+    "http_proxy_url": "https://yakgzeajldnlek-7777.proxy.runpod.net/",
+    "jupyter_port": 8888,
+    "service_port": 7777
+  }
+}

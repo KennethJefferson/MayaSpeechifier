@@ -5,7 +5,16 @@
       "Bash(python:*)",
       "Bash(pkill:*)",
       "Bash(lsof:*)",
-      "Bash(tar:*)"
+      "Bash(tar:*)",
+      "Bash(go version:*)",
+      "Bash(go mod download:*)",
+      "Bash(go build:*)",
+      "Bash(go mod tidy:*)",
+      "Bash(./MayaSpeechify.exe:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "Bash(findstr:*)",
+      "Bash(powershell -Command \"Get-Item test.mp3 | Select-Object Name, Length, CreationTime, LastWriteTime\")"
     ],
     "deny": [],
     "ask": []

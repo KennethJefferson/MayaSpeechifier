@@ -1,0 +1,125 @@
+{
+  "_comment": "Maya1 Speechify Server Configuration",
+  "_docs": "Copy this file to config.json and adjust values as needed",
+
+  "server": {
+    "_comment": "Server networking settings",
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 1,
+    "log_level": "INFO"
+  },
+
+  "cors": {
+    "_comment": "Cross-Origin Resource Sharing settings",
+    "enabled": true,
+    "allowed_origins": [
+      "*"
+    ],
+    "allowed_methods": [
+      "GET",
+      "POST"
+    ],
+    "allowed_headers": [
+      "*"
+    ],
+    "allow_credentials": false
+  },
+
+  "model": {
+    "_comment": "Maya1 model settings",
+    "name": "maya-research/maya1",
+    "device": "cuda",
+    "dtype": "bfloat16",
+    "max_model_len": 2048,
+    "trust_remote_code": true
+  },
+
+  "model_pool": {
+    "_comment": "Model instance pool settings for parallel processing",
+    "_gpu_memory_notes": [
+      "RTX 4090 (24GB): Use 1-3 instances with gpu_memory_per_instance=0.28",
+      "A100 (40GB): Can use 3-5 instances with gpu_memory_per_instance=0.25",
+      "Total GPU memory = num_instances * gpu_memory_per_instance * 24GB",
+      "Leave 10-15% headroom for CUDA overhead"
+    ],
+    "num_instances": 3,
+    "gpu_memory_per_instance": 0.28,
+    "tensor_parallel_size": 1
+  },
+
+  "generation": {
+    "_comment": "Text-to-speech generation parameters",
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "repetition_penalty": 1.1,
+    "max_new_tokens": 2048
+  },
+
+  "audio": {
+    "_comment": "Audio output settings",
+    "sample_rate": 24000,
+    "format": "mp3",
+    "bitrate": "192k",
+    "_bitrate_options": [
+      "128k - smaller files, lower quality",
+      "192k - balanced (recommended)",
+      "256k - larger files, higher quality",
+      "320k - maximum quality"
+    ]
+  },
+
+  "text_processing": {
+    "_comment": "Text chunking and file size limits",
+    "chunk_size": 1500,
+    "max_file_size_mb": 10,
+    "_chunk_notes": [
+      "Texts longer than chunk_size tokens are automatically split",
+      "Audio chunks are merged seamlessly with 100ms silence padding",
+      "Recommended: 1000-2000 tokens per chunk"
+    ]
+  },
+
+  "voice": {
+    "_comment": "Default voice characteristics",
+    "default_description": "neutral, conversational, clear",
+    "_examples": [
+      "warm, low pitch, conversational",
+      "young, energetic, friendly",
+      "professional, clear, formal",
+      "elderly, calm, authoritative"
+    ],
+    "_inline_emotions": [
+      "<laugh>",
+      "<cry>",
+      "<whisper>",
+      "<angry>",
+      "<gasp>",
+      "<sigh>",
+      "<yawn>",
+      "...and 15+ more"
+    ]
+  },
+
+  "runpod": {
+    "_comment": "RunPod deployment configuration",
+    "_connection_methods": [
+      "SSH: Use ssh_user@ssh_host with SSH key",
+      "SSH over TCP: Use ssh_tcp_user@ssh_tcp_host -p ssh_tcp_port with SSH key",
+      "HTTP Proxy: Access services via http_proxy_url",
+      "Jupyter Lab: Available on jupyter_port when ready"
+    ],
+    "pod_name": "",
+    "pod_id": "",
+    "ssh_host": "",
+    "ssh_user": "",
+    "ssh_tcp_host": "",
+    "ssh_tcp_port": 22,
+    "ssh_tcp_user": "root",
+    "direct_tcp_address": "",
+    "direct_tcp_port": 22,
+    "http_proxy_url": "",
+    "jupyter_port": 8888,
+    "service_port": 7777
+  }
+}
