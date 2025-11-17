@@ -1,0 +1,31 @@
+{
+  "_comment": "MayaSpeechify Client Configuration",
+  "_usage": "Copy this file to config.json and adjust values as needed",
+
+  "server_url": "http://localhost:8000",
+  "_server_url_note": "Server endpoint URL (can be overridden with -server flag)",
+  "_server_url_examples": [
+    "Local: http://localhost:8000",
+    "Remote: http://192.168.1.100:8000",
+    "RunPod: https://xxxxx-7777.proxy.runpod.net"
+  ],
+
+  "timeout": 600,
+  "_timeout_note": "HTTP request timeout in seconds (can be overridden with -timeout flag)",
+  "_timeout_recommendations": [
+    "Small files: 60-120 seconds",
+    "Medium files: 300-600 seconds (default)",
+    "Large files: 600-1200 seconds"
+  ],
+
+  "workers": 1,
+  "_workers_note": "Default number of parallel workers (can be overridden with -workers flag)",
+  "_workers_recommendations": [
+    "1 worker: Sequential processing, safest (default)",
+    "2-3 workers: Parallel processing, requires server with 2-3 model instances",
+    "4+ workers: Only if server has sufficient capacity"
+  ],
+
+  "_cli_overrides": "All config values can be overridden with CLI flags",
+  "_priority_order": "CLI Flags > config.json > Hardcoded Defaults"
+}

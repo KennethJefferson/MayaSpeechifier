@@ -7,26 +7,35 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
-// Config holds the application configuration
-type Config struct {
+// AppConfig holds the application runtime configuration
+type AppConfig struct {
 	Workers   int
 	ScanPath  string
 	Recursive bool
 	Verbose   bool
 	ServerURL string
+	Timeout   time.Duration
 }
 
 func main() {
-	// Define command-line flags
-	var config Config
+	// Load configuration from config.json (or use defaults)
+	clientConfig := LoadConfig()
 
-	flag.IntVar(&config.Workers, "workers", 1, "Number of parallel workers (default: 1)")
+	// Define command-line flags with defaults from config.json
+	var config AppConfig
+	var workersFlag int
+	var serverFlag string
+	var timeoutFlag int
+
+	flag.IntVar(&workersFlag, "workers", clientConfig.Workers, "Number of parallel workers")
 	flag.StringVar(&config.ScanPath, "scan", "", "Root directory to scan for .txt files (required)")
 	flag.BoolVar(&config.Recursive, "recursive", false, "Search subdirectories recursively")
 	flag.BoolVar(&config.Verbose, "verbose", false, "Enable detailed logging")
-	flag.StringVar(&config.ServerURL, "server", "http://localhost:8000", "Maya1 API server URL")
+	flag.StringVar(&serverFlag, "server", clientConfig.ServerURL, "Maya1 API server URL")
+	flag.IntVar(&timeoutFlag, "timeout", clientConfig.Timeout, "HTTP request timeout in seconds")
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "MayaSpeechify - Text-to-Speech Client\n\n")
@@ -40,6 +49,11 @@ func main() {
 	}
 
 	flag.Parse()
+
+	// Apply CLI flag overrides (CLI always takes precedence)
+	config.Workers = workersFlag
+	config.ServerURL = serverFlag
+	config.Timeout = time.Duration(timeoutFlag) * time.Second
 
 	// Validate required flags
 	if config.ScanPath == "" {
@@ -60,6 +74,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Validate timeout
+	if config.Timeout < 1*time.Second {
+		fmt.Fprintf(os.Stderr, "Error: timeout must be at least 1 second\n")
+		os.Exit(1)
+	}
+
 	// Initialize logger
 	if !config.Verbose {
 		log.SetOutput(os.Stderr)
@@ -76,6 +96,7 @@ func main() {
 		log.Printf("  Scan Path: %s", config.ScanPath)
 		log.Printf("  Recursive: %v", config.Recursive)
 		log.Printf("  Server URL: %s", config.ServerURL)
+		log.Printf("  Timeout: %v", config.Timeout)
 		log.Println()
 	}
 
@@ -86,7 +107,7 @@ func main() {
 	}
 }
 
-func run(config Config) error {
+func run(config AppConfig) error {
 	// Step 1: Discover text files
 	log.Println("Scanning for .txt files...")
 	files, err := discoverFiles(config.ScanPath, config.Recursive)

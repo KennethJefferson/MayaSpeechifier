@@ -44,7 +44,19 @@ go mod download
 
 # Build the executable
 go build -o MayaSpeechify.exe .
+
+# (Optional) Configure the client
+# A default config.json is included, edit if needed
+# Example: Set server URL for remote server
+# Edit config.json:
+# {
+#   "server_url": "https://xxxxx-7777.proxy.runpod.net",
+#   "timeout": 600,
+#   "workers": 1
+# }
 ```
+
+**Note:** The client automatically loads `config.json` from the same directory as the executable. If missing, `config.example.json` is created on first run.
 
 ### Step 3: Test the Setup
 
@@ -147,9 +159,17 @@ books/
 - Start with 1 client worker and increase gradually
 - Monitor GPU usage: `nvidia-smi -l 1`
 - Large text files are automatically chunked by the server
-- **Configuration:** All server settings are in `server/config.json`
-  - Adjust `num_instances` for parallel processing (1-3 recommended for RTX 4090)
-  - Adjust `bitrate` for MP3 quality (128k, 192k, 256k, 320k)
-  - Enable/disable CORS for web clients
-- Check server config via API: `curl http://localhost:8000/config`
+
+**Server Configuration (`server/config.json`):**
+- Adjust `num_instances` for parallel processing (1-3 recommended for RTX 4090)
+- Adjust `bitrate` for MP3 quality (128k, 192k, 256k, 320k)
+- Enable/disable CORS for web clients
+- Check server config: `curl http://localhost:8000/config`
 - Check server health: `curl http://localhost:8000/health` (shows instance count)
+
+**Client Configuration (`client/config.json`):**
+- Set default `server_url` to avoid `-server` flag every time
+- Adjust `timeout` for large files (default: 600s = 10 min)
+- Set default `workers` count (can override with `-workers` flag)
+- CLI flags always override config.json values
+- First run creates `config.example.json` automatically if missing

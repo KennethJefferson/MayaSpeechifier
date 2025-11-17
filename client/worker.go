@@ -28,7 +28,7 @@ type SynthesizeRequest struct {
 }
 
 // processFiles processes all files using a worker pool
-func processFiles(files []string, config Config) ([]ProcessResult, error) {
+func processFiles(files []string, config AppConfig) ([]ProcessResult, error) {
 	numWorkers := config.Workers
 	if numWorkers > len(files) {
 		numWorkers = len(files)
@@ -76,11 +76,15 @@ func processFiles(files []string, config Config) ([]ProcessResult, error) {
 
 // worker processes files from the jobs channel
 func worker(id int, jobs <-chan string, results chan<- ProcessResult,
-	wg *sync.WaitGroup, config Config, bar ProgressBar) {
+	wg *sync.WaitGroup, config AppConfig, bar ProgressBar) {
 	defer wg.Done()
 
 	client := &http.Client{
-		Timeout: 5 * time.Minute, // 5 minute timeout for large files
+		Timeout: config.Timeout,
+	}
+
+	if config.Verbose {
+		log.Printf("[Worker %d] Starting with timeout: %v", id, config.Timeout)
 	}
 
 	for filePath := range jobs {
@@ -124,7 +128,7 @@ func worker(id int, jobs <-chan string, results chan<- ProcessResult,
 }
 
 // processSingleFile handles the processing of a single text file
-func processSingleFile(filePath string, client *http.Client, config Config) (string, error) {
+func processSingleFile(filePath string, client *http.Client, config AppConfig) (string, error) {
 	// Read file contents
 	content, err := os.ReadFile(filePath)
 	if err != nil {

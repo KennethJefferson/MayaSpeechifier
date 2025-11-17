@@ -160,30 +160,68 @@ curl http://localhost:8000/health
 
 ### Client
 
+#### Client Configuration File (`config.json`)
+
+The Go client also supports configuration via `config.json` in the same directory as the executable.
+
+**Configuration file location:** `client/config.json` (or next to `MayaSpeechify.exe`)
+
+**Example configuration:**
+```json
+{
+  "server_url": "http://localhost:8000",
+  "timeout": 600,
+  "workers": 1
+}
+```
+
+- `server_url`: Default server endpoint
+- `timeout`: HTTP request timeout in seconds (default: 600)
+- `workers`: Default number of workers (default: 1)
+
+**Configuration priority (high to low):**
+1. CLI flags (highest)
+2. config.json
+3. Hardcoded defaults (lowest)
+
+**Note:** CLI flags always override config.json values.
+
+#### Client Usage Examples
+
 **Basic usage (single directory, non-recursive):**
 ```bash
 MayaSpeechify.exe -scan "K:\Downloads\books"
+# Uses config.json for server_url, workers, timeout
 ```
 
 **Recursive scanning with multiple workers:**
 ```bash
 MayaSpeechify.exe -workers 2 -scan "K:\Downloads\books" -recursive
+# workers=2 overrides config.json
 ```
 
 **Verbose mode for detailed logging:**
 ```bash
 MayaSpeechify.exe -workers 2 -scan "K:\Downloads\books" -recursive -verbose
+# Shows config values, worker activity, timing
 ```
 
 **Custom server URL:**
 ```bash
 MayaSpeechify.exe -scan "K:\Downloads\books" -server "http://192.168.1.100:8000"
+# -server flag overrides config.json server_url
+```
+
+**Custom timeout:**
+```bash
+MayaSpeechify.exe -scan "K:\Downloads\books" -timeout 1200
+# 20 minute timeout for very large files
 ```
 
 **Command-line flags:**
 ```
   -workers int
-        Number of parallel workers (default: 1)
+        Number of parallel workers (default: from config.json or 1)
   -scan string
         Root directory to scan for .txt files (required)
   -recursive
@@ -191,7 +229,9 @@ MayaSpeechify.exe -scan "K:\Downloads\books" -server "http://192.168.1.100:8000"
   -verbose
         Enable detailed logging
   -server string
-        Maya1 API server URL (default: "http://localhost:8000")
+        Maya1 API server URL (default: from config.json or "http://localhost:8000")
+  -timeout int
+        HTTP request timeout in seconds (default: from config.json or 600)
 ```
 
 ## Examples
