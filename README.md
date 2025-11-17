@@ -74,7 +74,27 @@ A high-performance client/server application for converting text files to speech
    conda install -c conda-forge ffmpeg
    ```
 
-5. **Start the server:**
+5. **Configure the server (optional):**
+
+   The server uses `config.json` for all settings. A default configuration is included, but you can customize it:
+
+   ```bash
+   # View the example configuration with documentation
+   cat config.example.json
+
+   # Edit config.json to customize settings
+   nano config.json
+   ```
+
+   **Key configuration options:**
+   - `model_pool.num_instances`: Number of parallel model instances (default: 3)
+   - `model_pool.gpu_memory_per_instance`: GPU memory per instance (default: 0.28 = 28%)
+   - `server.port`: Server port (default: 8000)
+   - `cors.enabled`: Enable CORS for web clients (default: true)
+
+   See [Configuration](#configuration) section below for details.
+
+6. **Start the server:**
    ```bash
    python main.py
    ```
@@ -222,9 +242,154 @@ Successful: 23
 Failed: 0
 ```
 
+## Configuration
+
+### Server Configuration File (`config.json`)
+
+The server uses a JSON configuration file for all settings. The default `config.json` supports **3 parallel model instances** with round-robin load balancing.
+
+**Configuration file location:** `server/config.json`
+
+**Example configuration:** `server/config.example.json` (with detailed comments)
+
+### Configuration Sections
+
+#### 1. Server Settings
+```json
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 1,
+    "log_level": "INFO"
+  }
+}
+```
+
+- `host`: Server bind address (default: 0.0.0.0 for all interfaces)
+- `port`: Server port (default: 8000)
+- `workers`: Uvicorn worker processes (default: 1)
+- `log_level`: Logging verbosity (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+
+#### 2. CORS Settings
+```json
+{
+  "cors": {
+    "enabled": true,
+    "allowed_origins": ["*"],
+    "allowed_methods": ["GET", "POST"],
+    "allowed_headers": ["*"],
+    "allow_credentials": false
+  }
+}
+```
+
+Enable CORS for web-based clients. Use `allowed_origins: ["*"]` for development, specific origins for production.
+
+#### 3. Model Pool Settings ⚡ **NEW**
+```json
+{
+  "model_pool": {
+    "num_instances": 3,
+    "gpu_memory_per_instance": 0.28,
+    "tensor_parallel_size": 1
+  }
+}
+```
+
+- `num_instances`: Number of parallel model instances (1-8 recommended)
+- `gpu_memory_per_instance`: GPU memory fraction per instance (0.1-0.9)
+- `tensor_parallel_size`: GPUs per instance for tensor parallelism
+
+**GPU Memory Guidelines:**
+- **RTX 4090 (24GB)**: 3 instances × 0.28 = ~20GB (recommended)
+- **A100 (40GB)**: 5 instances × 0.25 = ~50GB total across instances
+- **Conservative**: 1 instance × 0.85 = ~20GB (safe fallback)
+
+**Formula:** `Total VRAM = num_instances × gpu_memory_per_instance × GPU_SIZE`
+
+Leave 10-15% headroom for CUDA overhead.
+
+#### 4. Generation Parameters
+```json
+{
+  "generation": {
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "repetition_penalty": 1.1,
+    "max_new_tokens": 2048
+  }
+}
+```
+
+Controls speech generation quality and characteristics.
+
+#### 5. Audio Settings
+```json
+{
+  "audio": {
+    "sample_rate": 24000,
+    "format": "mp3",
+    "bitrate": "192k"
+  }
+}
+```
+
+- `sample_rate`: 24000 Hz (Maya1 native, don't change)
+- `format`: Output format (mp3, wav)
+- `bitrate`: MP3 quality (128k, 192k, 256k, 320k)
+
+#### 6. Text Processing
+```json
+{
+  "text_processing": {
+    "chunk_size": 1500,
+    "max_file_size_mb": 10
+  }
+}
+```
+
+- `chunk_size`: Max tokens per chunk (500-4000)
+- `max_file_size_mb`: Maximum uploadable file size
+
+### Environment Variable Overrides
+
+Override config.json values with environment variables:
+
+```bash
+# Server settings
+export HOST=0.0.0.0
+export PORT=8000
+export LOG_LEVEL=DEBUG
+
+# Model pool settings
+export NUM_INSTANCES=2
+export GPU_MEMORY_PER_INSTANCE=0.35
+
+# Start server
+python main.py
+```
+
+### Viewing Current Configuration
+
+Check active configuration via API:
+
+```bash
+curl http://localhost:8000/config
+```
+
+Returns current settings (non-sensitive fields only).
+
 ## Performance Tuning
 
 ### Server
+
+**Model Pool Configuration:**
+- Default: **3 instances** for RTX 4090 (optimal throughput)
+- Conservative: **1 instance** (maximum memory for single request)
+- Aggressive: **4+ instances** (only for GPUs >32GB VRAM)
+
+Edit `config.json` to adjust `num_instances` and `gpu_memory_per_instance`.
 
 **GPU Memory Optimization:**
 - Adjust `GPU_MEMORY_UTILIZATION` in `config.py` (default: 0.85)

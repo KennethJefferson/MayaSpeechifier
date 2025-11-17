@@ -6,7 +6,7 @@ import torch
 from vllm import LLM, SamplingParams
 from snac import SNAC
 
-from config import Config
+from config_schema import AppConfig
 
 logger = logging.getLogger(__name__)
 
@@ -14,43 +14,58 @@ logger = logging.getLogger(__name__)
 class Maya1Model:
     """Wrapper for Maya1 TTS model using vLLM."""
 
-    def __init__(self):
-        """Initialize Maya1 model with vLLM and SNAC decoder."""
-        logger.info("Initializing Maya1 model with vLLM...")
+    def __init__(self, instance_id: int = 0, config: Optional[AppConfig] = None):
+        """
+        Initialize Maya1 model with vLLM and SNAC decoder.
+
+        Args:
+            instance_id: Unique identifier for this model instance
+            config: Application configuration. If None, uses default config.
+        """
+        self.instance_id = instance_id
+
+        # Import here to avoid circular dependency
+        if config is None:
+            from config import config as default_config
+            config = default_config
+
+        self.config = config
+
+        logger.info(f"[Instance {instance_id}] Initializing Maya1 model with vLLM...")
 
         # Initialize vLLM model
         try:
             self.llm = LLM(
-                model=Config.MODEL_NAME,
-                tensor_parallel_size=Config.TENSOR_PARALLEL_SIZE,
-                gpu_memory_utilization=Config.GPU_MEMORY_UTILIZATION,
-                dtype=Config.DTYPE,
-                max_model_len=Config.MAX_MODEL_LEN,
-                trust_remote_code=True,
+                model=config.model.name,
+                tensor_parallel_size=config.model_pool.tensor_parallel_size,
+                gpu_memory_utilization=config.model_pool.gpu_memory_per_instance,
+                dtype=config.model.dtype,
+                max_model_len=config.model.max_model_len,
+                trust_remote_code=config.model.trust_remote_code,
             )
-            logger.info("vLLM model loaded successfully")
+            logger.info(f"[Instance {instance_id}] vLLM model loaded successfully")
         except Exception as e:
-            logger.error(f"Failed to load vLLM model: {e}")
+            logger.error(f"[Instance {instance_id}] Failed to load vLLM model: {e}")
             raise
 
         # Initialize SNAC decoder for audio generation
         try:
             self.snac_model = SNAC.from_pretrained("hubertsiuzdak/snac_24khz").eval()
-            self.snac_model = self.snac_model.to(Config.DEVICE)
-            logger.info("SNAC decoder loaded successfully")
+            self.snac_model = self.snac_model.to(config.model.device)
+            logger.info(f"[Instance {instance_id}] SNAC decoder loaded successfully")
         except Exception as e:
-            logger.error(f"Failed to load SNAC decoder: {e}")
+            logger.error(f"[Instance {instance_id}] Failed to load SNAC decoder: {e}")
             raise
 
         # Set up sampling parameters
         self.sampling_params = SamplingParams(
-            temperature=Config.TEMPERATURE,
-            top_p=Config.TOP_P,
-            repetition_penalty=Config.REPETITION_PENALTY,
-            max_tokens=Config.MAX_NEW_TOKENS,
+            temperature=config.generation.temperature,
+            top_p=config.generation.top_p,
+            repetition_penalty=config.generation.repetition_penalty,
+            max_tokens=config.generation.max_new_tokens,
         )
 
-        logger.info("Maya1 model initialized and ready")
+        logger.info(f"[Instance {instance_id}] Maya1 model initialized and ready")
 
     def generate_audio(self, text: str, voice_description: Optional[str] = None) -> np.ndarray:
         """
@@ -67,9 +82,12 @@ class Maya1Model:
         if voice_description:
             prompt = f'<description="{voice_description}">{text}'
         else:
-            prompt = f'{Config.get_voice_prompt()}{text}'
+            prompt = f'{self.config.get_voice_prompt()}{text}'
 
-        logger.debug(f"Generating audio for prompt (length: {len(prompt)} chars)")
+        logger.debug(
+            f"[Instance {self.instance_id}] Generating audio for prompt "
+            f"(length: {len(prompt)} chars)"
+        )
 
         try:
             # Generate SNAC tokens using vLLM
@@ -89,7 +107,11 @@ class Maya1Model:
             # Decode SNAC codes to audio
             audio_array = self._decode_snac_to_audio(snac_codes)
 
-            logger.debug(f"Generated audio: {audio_array.shape[0]} samples, {audio_array.shape[0] / Config.SAMPLE_RATE:.2f} seconds")
+            logger.debug(
+                f"[Instance {self.instance_id}] Generated audio: "
+                f"{audio_array.shape[0]} samples, "
+                f"{audio_array.shape[0] / self.config.audio.sample_rate:.2f} seconds"
+            )
 
             return audio_array
 
@@ -158,7 +180,7 @@ class Maya1Model:
                 num_frames = len(codes_array) // 7
                 codes_array = codes_array.reshape(1, num_frames, 7).transpose(0, 2, 1)
 
-            return torch.from_numpy(codes_array).to(Config.DEVICE)
+            return torch.from_numpy(codes_array).to(self.config.model.device)
 
         except Exception as e:
             logger.error(f"Failed to parse SNAC tokens: {e}")
@@ -213,12 +235,18 @@ class Maya1Model:
         audio_arrays = []
 
         for i, text in enumerate(texts):
-            logger.info(f"Generating audio for chunk {i + 1}/{len(texts)}")
+            logger.info(
+                f"[Instance {self.instance_id}] "
+                f"Generating audio for chunk {i + 1}/{len(texts)}"
+            )
             try:
                 audio = self.generate_audio(text, voice_description)
                 audio_arrays.append(audio)
             except Exception as e:
-                logger.error(f"Failed to generate audio for chunk {i + 1}: {e}")
+                logger.error(
+                    f"[Instance {self.instance_id}] "
+                    f"Failed to generate audio for chunk {i + 1}: {e}"
+                )
                 # Continue with other chunks rather than failing completely
                 continue
 

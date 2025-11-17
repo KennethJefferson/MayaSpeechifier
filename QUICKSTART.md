@@ -18,6 +18,11 @@ pip install -r requirements.txt
 # Install ffmpeg (if not already installed)
 sudo apt-get update && sudo apt-get install -y ffmpeg
 
+# (Optional) Customize configuration
+# The default config.json runs 3 model instances for parallel processing
+# Edit config.json to adjust num_instances or gpu_memory_per_instance
+nano config.json
+
 # Start the server
 python main.py
 ```
@@ -25,6 +30,8 @@ python main.py
 **First run will take ~5-10 minutes** to download the Maya1 model (~6GB) and SNAC decoder.
 
 Server will be available at: `http://localhost:8000`
+
+**Default Configuration:** 3 model instances with round-robin load balancing (optimal for RTX 4090)
 
 ### Step 2: Build the Client (Windows/Local Machine)
 
@@ -71,9 +78,14 @@ MayaSpeechify.exe -workers 2 -scan "K:\Downloads\books" -recursive -verbose
 - **Medium files (1-10KB):** ~10-30 seconds
 - **Large files (> 10KB):** ~30-120 seconds
 
-With RTX 4090:
-- Single worker (safe): ~6-8GB VRAM
-- Two workers (possible): ~12-16GB VRAM
+**Default Server Configuration (3 model instances):**
+- RTX 4090: ~20GB VRAM total (3 instances × ~6.7GB each)
+- Processes 3 chunks concurrently with round-robin load balancing
+- Optimal throughput for parallel requests
+
+**Client Workers:**
+- Single worker (default): Sequential file processing
+- Multiple workers (2-3): Parallel file processing (limited by server capacity)
 
 ## 🔧 Common Issues
 
@@ -95,9 +107,20 @@ MayaSpeechify.exe -scan "C:\Books" -server "http://YOUR_SERVER_IP:8000"
 ```
 
 **Out of memory:**
-- Edit `server/config.py`
-- Reduce `GPU_MEMORY_UTILIZATION` from 0.85 to 0.75
+- Edit `server/config.json`
+- Reduce `num_instances` from 3 to 1 or 2
+- OR reduce `gpu_memory_per_instance` from 0.28 to 0.25
 - Restart server
+
+Example fix:
+```json
+{
+  "model_pool": {
+    "num_instances": 1,
+    "gpu_memory_per_instance": 0.85
+  }
+}
+```
 
 ## 📁 What Gets Created
 
@@ -121,7 +144,12 @@ books/
 ## 💡 Pro Tips
 
 - Use `-verbose` flag while testing to see detailed progress
-- Start with 1 worker and increase gradually
+- Start with 1 client worker and increase gradually
 - Monitor GPU usage: `nvidia-smi -l 1`
 - Large text files are automatically chunked by the server
-- MP3 bitrate can be adjusted in `server/config.py`
+- **Configuration:** All server settings are in `server/config.json`
+  - Adjust `num_instances` for parallel processing (1-3 recommended for RTX 4090)
+  - Adjust `bitrate` for MP3 quality (128k, 192k, 256k, 320k)
+  - Enable/disable CORS for web clients
+- Check server config via API: `curl http://localhost:8000/config`
+- Check server health: `curl http://localhost:8000/health` (shows instance count)
