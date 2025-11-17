@@ -20,8 +20,8 @@
     "trust_remote_code": true
   },
   "model_pool": {
-    "num_instances": 3,
-    "gpu_memory_per_instance": 0.28,
+    "num_instances": 2,
+    "gpu_memory_per_instance": 0.4,
     "tensor_parallel_size": 1
   },
   "generation": {
@@ -41,5 +41,19 @@
   },
   "voice": {
     "default_description": "neutral, conversational, clear"
+  },
+  "runpod": {
+    "pod_name": "kennyjnotg",
+    "pod_id": "yakgzeajldnlek",
+    "ssh_host": "ssh.runpod.io",
+    "ssh_user": "yakgzeajldnlek-6441155a",
+    "ssh_tcp_host": "213.173.110.158",
+    "ssh_tcp_port": 36312,
+    "ssh_tcp_user": "root",
+    "direct_tcp_address": "213.173.110.158",
+    "direct_tcp_port": 36312,
+    "http_proxy_url": "https://yakgzeajldnlek-7777.proxy.runpod.net/",
+    "jupyter_port": 8888,
+    "service_port": 7777
   }
 }

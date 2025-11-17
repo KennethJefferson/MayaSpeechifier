@@ -99,5 +99,27 @@
       "<yawn>",
       "...and 15+ more"
     ]
+  },
+
+  "runpod": {
+    "_comment": "RunPod deployment configuration",
+    "_connection_methods": [
+      "SSH: Use ssh_user@ssh_host with SSH key",
+      "SSH over TCP: Use ssh_tcp_user@ssh_tcp_host -p ssh_tcp_port with SSH key",
+      "HTTP Proxy: Access services via http_proxy_url",
+      "Jupyter Lab: Available on jupyter_port when ready"
+    ],
+    "pod_name": "",
+    "pod_id": "",
+    "ssh_host": "",
+    "ssh_user": "",
+    "ssh_tcp_host": "",
+    "ssh_tcp_port": 22,
+    "ssh_tcp_user": "root",
+    "direct_tcp_address": "",
+    "direct_tcp_port": 22,
+    "http_proxy_url": "",
+    "jupyter_port": 8888,
+    "service_port": 7777
   }
 }

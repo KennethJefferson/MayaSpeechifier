@@ -99,7 +99,7 @@ A high-performance client/server application for converting text files to speech
    python main.py
    ```
 
-   The server will start on `http://0.0.0.0:8000` by default.
+   The server will start on `http://0.0.0.0:7777` by default.
 
    **Note:** First run will download the Maya1 model (~6GB) and SNAC decoder automatically.
 

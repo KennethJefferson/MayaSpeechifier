@@ -138,6 +138,22 @@ class VoiceConfig(BaseModel):
     )
 
 
+class RunPodConfig(BaseModel):
+    """RunPod deployment configuration."""
+    pod_name: str = Field(default="", description="RunPod pod name")
+    pod_id: str = Field(default="", description="RunPod pod ID")
+    ssh_host: str = Field(default="", description="SSH hostname for RunPod")
+    ssh_user: str = Field(default="", description="SSH username for RunPod")
+    ssh_tcp_host: str = Field(default="", description="Direct TCP SSH host IP")
+    ssh_tcp_port: int = Field(default=22, description="Direct TCP SSH port")
+    ssh_tcp_user: str = Field(default="root", description="Direct TCP SSH username")
+    direct_tcp_address: str = Field(default="", description="Direct TCP connection address")
+    direct_tcp_port: int = Field(default=22, description="Direct TCP port")
+    http_proxy_url: str = Field(default="", description="HTTP proxy URL for services")
+    jupyter_port: int = Field(default=8888, description="Jupyter Lab port")
+    service_port: int = Field(default=7777, description="Main service port")
+
+
 class AppConfig(BaseModel):
     """Root application configuration."""
     server: ServerConfig = Field(default_factory=ServerConfig)
@@ -148,6 +164,7 @@ class AppConfig(BaseModel):
     audio: AudioConfig = Field(default_factory=AudioConfig)
     text_processing: TextProcessingConfig = Field(default_factory=TextProcessingConfig)
     voice: VoiceConfig = Field(default_factory=VoiceConfig)
+    runpod: RunPodConfig = Field(default_factory=RunPodConfig)
 
     @classmethod
     def from_json(cls, path: str) -> "AppConfig":
