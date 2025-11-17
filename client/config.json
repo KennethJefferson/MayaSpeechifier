@@ -1,5 +1,5 @@
 {
-  "server_url": "http://localhost:8000",
+  "server_url": "https://yakgzeajldnlek-7777.proxy.runpod.net/",
   "timeout": 600,
   "workers": 1
 }
